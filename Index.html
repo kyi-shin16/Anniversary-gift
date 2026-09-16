@@ -1,1 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>For You 🤎</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,body{
+    min-height:100%;
+}
+
+body{
+    font-family:Arial, sans-serif;
+    background:
+        radial-gradient(circle at 20% 10%,rgba(255,220,200,.15),transparent 30%),
+        radial-gradient(circle at 80% 90%,rgba(255,220,200,.1),transparent 30%),
+        linear-gradient(135deg,#241315,#4d2929,#261516);
+    color:#fff8f0;
+    overflow-x:hidden;
+}
+
+/* Floating hearts */
+.heart{
+    position:fixed;
+    bottom:-30px;
+    z-index:0;
+    opacity:.35;
+    pointer-events:none;
+    animation:floatUp linear infinite;
+}
+
+@keyframes floatUp{
+    0%{
+        transform:translateY(0) rotate(0);
+        opacity:0;
+    }
+    10%{
+        opacity:.35;
+    }
+    90%{
+        opacity:.35;
+    }
+    100%{
+        transform:translateY(-115vh) rotate(360deg);
+        opacity:0;
+    }
+}
+
+/* Pages */
+.page{
+    display:none;
+    min-height:100vh;
+    width:100%;
+    padding:25px 18px;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    position:relative;
+    z-index:1;
+}
+
+.page.active{
+    display:flex;
+    animation:fadeIn .7s ease;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.box{
+    width:min(520px,100%);
+    padding:35px 24px;
+    border-radius:28px;
+    background:rgba(255,248,240,.08);
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 15px 50px rgba(0,0,0,.3);
+    backdrop-filter:blur(12px);
+}
+
+h1{
+    font-size:clamp(25px,6vw,38px);
+    line-height:1.4;
+    font-weight:500;
+}
+
+p{
+    line-height:1.7;
+}
+
+/* Date */
+.date-input{
+    width:100%;
+    padding:15px;
+    margin-top:25px;
+    border-radius:15px;
+    border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.1);
+    color:white;
+    font-size:18px;
+    text-align:center;
+    outline:none;
+}
+
+.date-input::placeholder{
+    color:rgba(255,255,255,.55);
+}
+
+.error{
+    min-height:24px;
+    margin-top:8px;
+    color:#ffcaca;
+    font-size:14px;
+}
+
+/* Buttons */
+button{
+    font-family:Arial,sans-serif;
+    cursor:pointer;
+    border:none;
+    transition:.25s ease;
+}
+
+.main-btn,
+.tap-btn{
+    margin-top:20px;
+    padding:13px 30px;
+    border-radius:50px;
+    background:#f2d0b9;
+    color:#3a2020;
+    font-size:16px;
+    font-weight:bold;
+    box-shadow:0 7px 25px rgba(0,0,0,.25);
+}
+
+.main-btn:hover,
+.tap-btn:hover{
+    transform:translateY(-3px) scale(1.03);
+}
+
+/* Yes / No */
+.choice-wrap{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    min-height:80px;
+    margin-top:20px;
+}
+
+.yes-btn,
+.no-btn{
+    min-width:100px;
+    padding:12px 25px;
+    border-radius:50px;
+    font-size:17px;
+}
+
+.yes-btn{
+    background:#f2d0b9;
+    color:#3a2020;
+}
+
+.no-btn{
+    background:rgba(255,255,255,.13);
+    color:white;
+}
+
+/* Tarot */
+.card-page{
+    flex-direction:column;
+}
+
+.instruction{
+    font-size:21px;
+    margin-bottom:30px;
+}
+
+.cards{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    width:100%;
+}
+
+.tarot-card{
+    width:110px;
+    height:180px;
+    perspective:1000px;
+    cursor:pointer;
+}
+
+.card-inner{
+    width:100%;
+    height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .9s ease;
+}
+
+.tarot-card.flipped .card-inner{
+    transform:rotateY(180deg);
+}
+
+.card-front,
+.card-back{
+    position:absolute;
+    inset:0;
+    border-radius:17px;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    border:2px solid #e3bd98;
+    overflow:hidden;
+}
+
+/* Tarot back design */
+.card-front{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+background:
+        repeating-linear-gradient(
+            45deg,
+            rgba(255,255,255,.04) 0px,
+            rgba(255,255,255,.04) 2px,
+            transparent 2px,
+            transparent 8px
+        ),
+        linear-gradient(145deg,#563033,#211315);
+}
+
+.card-front::before{
+    content:"✦";
+    width:65px;
+    height:65px;
+    border:1px solid #e3bd98;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#e3bd98;
+    font-size:42px;
+}
+
+.card-back{
+    transform:rotateY(180deg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px;
+    text-align:center;
+
+    background:
+        radial-gradient(circle at 50% 20%,rgba(255,255,255,.2),transparent 30%),
+        linear-gradient(145deg,#9c6652,#3e2023);
+}
+
+.card-message{
+    font-size:14px;
+    line-height:1.5;
+}
+
+/* Music */
+.music-icon{
+    font-size:60px;
+    margin-bottom:15px;
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.12);}
+}
+
+audio{
+    width:100%;
+    margin-top:20px;
+}
+
+/* Envelope */
+.envelope-wrap{
+    margin-top:30px;
+}
+
+.envelope{
+    width:230px;
+    height:150px;
+    margin:auto;
+    position:relative;
+    cursor:pointer;
+    background:#a96f5a;
+    border-radius:5px;
+    box-shadow:0 15px 35px rgba(0,0,0,.35);
+}
+
+.envelope::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    width:0;
+    height:0;
+    border-left:115px solid transparent;
+    border-right:115px solid transparent;
+    border-top:80px solid #d09a80;
+    transform-origin:top;
+    transition:transform .8s ease;
+}
+
+.envelope.open::before{
+    transform:rotateX(180deg);
+}
+
+.envelope-heart{
+    position:absolute;
+    left:50%;
+    top:55px;
+    transform:translateX(-50%);
+    font-size:30px;
+    z-index:2;
+}
+
+/* Letter */
+.letter-page{
+    align-items:flex-start;
+    padding:25px 14px;
+}
+
+.letter-box{
+    width:min(720px,100%);
+    margin:auto;
+    padding:28px 20px;
+    border-radius:18px;
+    background:#fff8ed;
+    color:#4a2b29;
+    box-shadow:0 15px 45px rgba(0,0,0,.35);
+    text-align:left;
+}
+
+.letter-box h2{
+    text-align:center;
+    margin-bottom:20px;
+    font-weight:500;
+}
+
+.letter-content{
+    font-family:Arial,"Noto Sans Myanmar",sans-serif;
+    font-size:16px;
+    line-height:2;
+    white-space:pre-wrap;
+    max-height:68vh;
+    overflow-y:auto;
+    padding-right:8px;
+}
+
+.letter-content::-webkit-scrollbar{
+    width:5px;
+}
+
+.letter-content::-webkit-scrollbar-thumb{
+    background:#a96f5a;
+    border-radius:10px;
+}
+
+.letter-bottom{
+    text-align:center;
+}
+
+/* Final */
+.final{
+    flex-direction:column;
+}
+
+/* Mobile */
+@media(max-width:400px){
+
+    .box{
+        padding:28px 18px;
+    }
+
+    .cards{
+        gap:7px;
+    }
+
+    .tarot-card{
+        width:88px;
+        height:145px;
+    }
+
+    .card-message{
+        font-size:12px;
+    }
+
+    .card-front::before{
+        width:52px;
+        height:52px;
+        font-size:32px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Floating hearts -->
+<span class="heart" style="left:5%;animation-duration:8s;font-size:18px;">🤎</span>
+<span class="heart" style="left:20%;animation-duration:11s;animation-delay:2s;font-size:14px;">🤍</span>
+<span class="heart" style="left:38%;animation-duration:9s;animation-delay:4s;font-size:20px;">🤎</span>
+<span class="heart" style="left:60%;animation-duration:12s;animation-delay:1s;font-size:15px;">🤍</span>
+<span class="heart" style="left:78%;animation-duration:8s;animation-delay:3s;font-size:19px;">🤎</span>
+<span class="heart" style="left:92%;animation-duration:10s;animation-delay:5s;font-size:14px;">🤍</span>
+
+
+<!-- 1. DATE -->
+<section class="page active" id="page1">
+    <div class="box">
+
+        <h1>Enter the day we met 🙄</h1>
+
+        <input
+            id="dateInput"
+            class="date-input"
+            type="text"
+            placeholder="16.6.2026"
+            autocomplete="off"
+        >
+
+        <button class="main-btn" onclick="checkDate()">
+            Continue
+        </button>
+      <div class="error" id="errorText"></div>
+
+    </div>
+</section>
+
+
+<!-- 2. THREE MONTHS -->
+<section class="page" id="page2">
+    <div class="box">
+
+        <h1>
+            We've been together for 3 months today, haven't we? 🤎
+        </h1>
+
+        <p style="margin-top:25px;">
+            I have a little letter that I wrote especially for you.
+            Would you like to read it?
+        </p>
+
+        <div class="choice-wrap">
+
+            <button class="yes-btn" onclick="showPage(3)">
+                Yes
+            </button>
+
+            <button class="no-btn" id="noBtn">
+                No
+            </button>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- 3. YES -->
+<section class="page" id="page3">
+    <div class="box">
+
+        <h1>
+            Okay, then let's see what I wrote for you 🤎
+        </h1>
+
+        <button class="tap-btn" onclick="showPage(4)">
+            Tap to continue
+        </button>
+
+    </div>
+</section>
+
+
+<!-- 4. TAROT -->
+<section class="page card-page" id="page4">
+
+    <div class="instruction" id="instruction">
+        Tap the first one 🤎
+    </div>
+
+    <div class="cards">
+
+        <div class="tarot-card" id="card1" onclick="flipCard(1)">
+            <div class="card-inner">
+
+                <div class="card-front"></div>
+
+                <div class="card-back">
+                    <div class="card-message">
+                        I love you with all my heart 🤎
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="tarot-card" id="card2" onclick="flipCard(2)">
+            <div class="card-inner">
+
+                <div class="card-front"></div>
+
+                <div class="card-back">
+                    <div class="card-message">
+                        I'll always be here for you,
+                        no matter what 🤎
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="tarot-card" id="card3" onclick="flipCard(3)">
+            <div class="card-inner">
+
+                <div class="card-front"></div>
+
+                <div class="card-back">
+                    <div class="card-message">
+                        Until the end of my life,
+                        all my love will always be for you 🤎
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- 5. SONG -->
+<section class="page" id="page5">
+
+    <div class="box">
+
+        <div class="music-icon">🎵</div>
+
+        <h1>
+            The song that reminds me of you 🫶🏻
+        </h1>
+
+        <button class="tap-btn" onclick="playSong()">
+            Tap to listen
+        </button>
+
+        <audio id="mySong" controls>
+            <source src="song.mp3" type="audio/mpeg">
+        </audio>
+
+    </div>
+</section>
+
+
+<!-- 6. ENVELOPE -->
+<section class="page" id="page6">
+
+    <div class="box">
+
+        <h1>
+            It's time to read the little message I wrote just for you 🤎
+        </h1>
+
+        <p style="margin-top:18px;opacity:.8;">
+            Tap the envelope to open it ✉️
+        </p>
+
+        <div class="envelope-wrap">
+
+            <div
+                class="envelope"
+                id="envelope"
+                onclick="openLetter()"
+            >
+                <div class="envelope-heart">🤎</div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- 7. LETTER -->
+<section class="page letter-page" id="page7">
+
+    <div class="letter-box">
+
+        <h2>For My Love 🤎</h2>
+
+        <div class="letter-content">အချစ်ကလေး ဒီနေ့ဆိုညီမတို့တူတူရှိလာခဲ့တာတောင်3လပြည့်သွားပြီနော် ရက်ပေါင်း100တောင်ရှိတော့မှာဟိဟိ အခု3လအတွင်းမှာညီမတို့အများကြီးအတူတူကျော်ဖြတ်ခဲ့ကြတာပဲနော် အဆင်မပြေတဲ့အချိန်တွေရောအကုန်လုံးကိုကျော်ဖြတ်နိုင်ခဲ့တယ် နောက်နှစ်တွေအများကြီးထိလဲအခက်အခဲဆုံးအချိန်တွေမှာတောင်အစ်မနဲ့ပဲတူတူရင်ဆိုင်သွားချင်တယ် အစ်မရှေ့မှာညီမတစ်ယောက်လုံးရှိတယ်နော် ဘယ်လိုတွေကြုံလာရ”အစ်မရဲ့အရှေ့မှာညီမရှိနေမယ်နော် လူ့ဘဝခဏတာလေးမှာ ညီမမှာရှိနေတဲ့အချိန်တွေအကုန်လုံးကိုအစ်မနဲ့ပဲတူတူဖြတ်သန်းသွားချင်မိတယ် အစ်မနံဘေးမှာတစ်သက်လုံးနေသွားဖို့ဆန္ဒရှိတယ်ရယ်
+မိန်းကလေးနှစ်ယောက်တည်ဆောက်ထားတဲ့အချိန်တစ်ခုမှာအခက်အခဲတွေပိုပြီးရင်ဆိုင်ရမှာဆိုပေမဲ့ ဘယ်တွေပဲဖြစ်လာ”ညီမကတော့အစ်မရဲ့လက်ကလေးကိုဘယ်တော့မှလွှတ်ချသွားမှာမဟုတ်ဘူးဆိုတာတော့ယုံပေးနော် အစ်မကညီမဘဝရဲ့အရာရာပဲ ညီမရဲ့နေ့ရက်တွေတိုင်းကအစ်မအနားမှာရှိနေမှပိုပြီးပြည့်စုံမှာ အစ်မကညီမအတွက်တော့ညီမချစ်နေရတဲ့လူတစ်ယောက်ဆိုတာထက်အများကြီးပိုတယ် အစ််မကြောင့်စိတ်ခွန်အားတွေရခဲ့တယ် ပြီးတော့ပိုပြီးကြိုးစားချင်တဲ့စိတ်လဲဖြစ်လာခဲ့တယ် တစ်နေ့မှာအစ်မကိုပြည့်”စုံ”ထားနိုင်ရမယ်ဆိုတဲ့စိတ်ကလေးနဲ့ပေါ့ အစ်မကညီမအတွက်အရာအားလုံးထက်အရေးကြီးတယ် အစ်မဝမ်းနည်းနေရတဲ့အချိန်ဆိုညီမရင်ထဲမှာမပျော်ဘူး အစ်မပျော်နေတဲ့အချိန်မျိုးဆိုညီမလဲထပ်တူပျော်နေမိတယ် ညီမကအစ်မအတွက် အစ်မပင်ပန်းလာရင် နားခိုလို့ရမယ့်ပခုံးလေးတစ်စုံ အစ်မရဲ့ဝမ်းနည်းမှုတွေကိုနားထောင်ပေးနိုင်မဲ့နားလေးတစ်စုံပဲဖြစ်ချင်တယ် အကောင်းဆုံးအရာတွေဖြစ်လာတဲ့အချိန်မှာလဲအစ်မအနားမှာပဲရှိနေမယ် စိတ်အဆင်မပြေစရာတွေရှိလာတဲ့အခါမှာလဲညီမကဘယ်တော့မှစိတ်ရှုပ်မသွားဘဲအစ်မအနားမှာပဲရှိနေမယ်နော် အဲ့ဒါကြောင့်ညီမကိုစိတ်ချလက်ချယုံကြည်လို့ရပါတယ်နော်ကလေးလေး ဒီနေ့ကစပြီးနောက်နှစ်တွေအများကြီးထိ ထွက်သက်မတိုင်မီအထိအတူတူရှိသွားကြရအောင်နော်🤎</div>
+
+        <div class="letter-bottom">
+
+            <button class="tap-btn" onclick="showPage(8)">
+                Tap to continue
+            </button>
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- 8. FINAL -->
+<section class="page final" id="page8">
+
+    <div class="box">
+
+        <h1>
+            Thank you for taking the time to read my little message until the very end. 🤍
+        </h1>
+
+    </div>
+
+</section>
+
+
+<script>
+
+/* PAGE CHANGE */
+function showPage(number){
+
+    document.querySelectorAll(".page").forEach(function(page){
+        page.classList.remove("active");
+    });
+
+    document.getElementById("page" + number).classList.add("active");
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+}
+
+
+/* DATE CHECK */
+function checkDate(){
+
+    const input =
+        document.getElementById("dateInput").value.trim();
+
+    const error =
+        document.getElementById("errorText");
+
+    if(input === "16.6.2026"){
+
+        error.textContent = "";
+
+        showPage(2);
+
+    }else{
+
+        error.textContent =
+            "Hmm... that's not the right day 🙄 Try again.";
+
+        document.getElementById("dateInput").value = "";
+    }
+}
+
+
+/* ENTER KEY */
+document
+.getElementById("dateInput")
+.addEventListener("keydown",function(event){
+
+    if(event.key === "Enter"){
+        checkDate();
+    }
+
+});
+
+
+/* NO BUTTON */
+const noBtn = document.getElementById("noBtn");
+
+function moveNoButton(){
+
+    const x =
+        (Math.random() * 180) - 90;
+
+    const y =
+        (Math.random() * 70) - 35;
+
+    noBtn.style.transform =
+        "translate(" + x + "px," + y + "px)";
+}
+
+noBtn.addEventListener(
+    "mouseenter",
+    moveNoButton
+);
+
+noBtn.addEventListener(
+    "touchstart",
+    function(event){
+
+        event.preventDefault();
+
+        moveNoButton();
+
+    }
+);
+
+
+/* TAROT */
+let currentCard = 1;
+
+function flipCard(number){
+
+    if(number !== currentCard){
+        return;
+    }
+
+    const card =
+        document.getElementById("card" + number);
+
+    card.classList.add("flipped");
+
+
+    if(number === 1){
+
+        document.getElementById("instruction")
+        .textContent =
+        "Tap the second one 🤎";
+
+        currentCard = 2;
+
+    }
+
+
+    else if(number === 2){
+
+        document.getElementById("instruction")
+        .textContent =
+        "Tap the last one 🤎";
+
+        currentCard = 3;
+
+    }
+
+
+    else if(number === 3){
+
+        document.getElementById("instruction")
+        .textContent =
+        "One more thing for you... 🤎";
+
+        currentCard = 4;
+
+        setTimeout(function(){
+
+            showPage(5);
+
+        },2200);
+    }
+
+}
+
+
+/* MUSIC */
+let musicStarted = false;
+
+function playSong(){
+
+    const song =
+        document.getElementById("mySong");
+
+    song.play().catch(function(){
+
+        alert(
+            "Please add your music file as song.mp3 🤎"
+        );
+
+    });
+
+
+    if(!musicStarted){
+
+        musicStarted = true;
+
+        setTimeout(function(){
+
+            showPage(6);
+
+        },30000);
+
+    }
+
+}
+
+
+/* ENVELOPE */
+function openLetter(){
+const envelope =
+        document.getElementById("envelope");
+
+    envelope.classList.add("open");
+
+    setTimeout(function(){
+
+        showPage(7);
+
+    },700);
+
+}
+
+</script>
+
+</body>
+</html>
+
+
+
+      
+  
